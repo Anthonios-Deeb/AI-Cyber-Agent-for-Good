@@ -2,6 +2,8 @@ import pandas as pd
 import random
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from sklearn.metrics import classification_report
+
 
 # Load model and tokenizer
 model_path = "../models/llama2-finetuned-cyberagent/checkpoint-500"
@@ -34,11 +36,11 @@ Total Bytes: {row['TotBytes']}
 Source Bytes: {row['SrcBytes']}"""
     flows.append((label, flow_info))
 
-# Evaluate each flow
-correct = 0
-total = len(flows)
+# Collect all predictions and labels for detailed evaluation
+all_preds = []
+all_labels = []
 
-for i, (label, flow_info) in enumerate(flows, 1):
+for label, flow_info in flows:
     prompt = f"""### Instruction:
 {instruction}
 
@@ -51,17 +53,20 @@ for i, (label, flow_info) in enumerate(flows, 1):
 
     response = tokenizer.decode(output[0], skip_special_tokens=True).lower()
     prediction = "botnet" if "botnet" in response else "normal"
-    is_correct = prediction == label
-    match_icon = "✅" if is_correct else "❌"
-    correct += is_correct
-
-    print(f"\n🔹 Flow #{i}")
-    print(f"Ground Truth : {label.upper()}")
-    print(f"Prediction   : {prediction.upper()} {match_icon}")
-    print("LLM Response :")
-    print(response.strip())
+    all_preds.append(prediction)
+    all_labels.append(label)
 
 # Summary
+correct = sum([pred == label for pred, label in zip(all_preds, all_labels)])
+total = len(flows)
 accuracy = correct / total * 100
 print(f"\n\n📊 Summary: {correct}/{total} correct")
 print(f"✅ Accuracy: {accuracy:.2f}%")
+
+# Convert to binary format
+binary_map = {"botnet": 1, "normal": 0}
+y_true = [binary_map[label] for label in all_labels]
+y_pred = [binary_map[pred] for pred in all_preds]
+
+print("\n📋 Classification Report:")
+print(classification_report(y_true, y_pred, target_names=["NORMAL", "BOTNET"]))
