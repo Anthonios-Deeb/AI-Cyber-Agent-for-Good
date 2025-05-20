@@ -27,7 +27,7 @@ The goal is to build an intelligent agent capable of:
 │   ├── build_training_prompts.py  # Generates instruction-output training pairs
 │   ├── train.py                   # Fine-tunes LLaMA2 with LoRA
 │   ├── predict.py                 # CLI-based real-time inference tool
-│   └── evaluate_models.py        # Compares baseline and SOTA performance
+│   └── test.py                   # Evaluates LLaMA model on 20 random flows
 └── README.md
 ```
 
@@ -42,10 +42,6 @@ The goal is to build an intelligent agent capable of:
 ---
 
 ## 🧠 Models
-
-### 🔹 Baseline: Random Forest
-- Trained on numerical features from the CTU-13 flows
-- Fast and interpretable, but lacks contextual understanding
 
 ### 🔸 SOTA: LLaMA 2 7B + LoRA
 - Fine-tuned on flow metadata → instruction/output format
@@ -91,16 +87,25 @@ python scripts/fine_tune_llama.py
 
 ---
 
-## 📈 Evaluating Models
+## 📈 Evaluating the LLaMA Agent
 
-To compare Random Forest (baseline) vs. fine-tuned LLaMA:
+We evaluated the fine-tuned LLaMA 2 agent on 20 randomly selected flows from the CTU-13 dataset. The model was trained on a balanced set of 1000 labeled flows (500 botnet + 500 normal) and assessed on previously unseen samples.
+
+### 🔬 Evaluation Setup:
+- Test set: 20 flows not used in training
+- Metrics: Accuracy, precision, recall, and F1-score
+
+### 📊 Result Summary:
+
+- ✅ The agent achieved high accuracy with strong language-based reasoning
+- 💬 Each prediction included a full explanation of why the flow was considered normal or malicious
+- 🔍 Examples demonstrate the model’s understanding of duration, ports, protocols, and byte patterns
+
+Run the full evaluation:
 
 ```bash
-python scripts/evaluate_models.py
+python scripts/test.py
 ```
-
-- Evaluates both models on the same test set
-- Metrics: accuracy, precision, recall, F1
 
 ---
 
@@ -136,15 +141,6 @@ Options:
 | Optimizer     | `paged_adamw_8bit` |
 | Steps         | 500         |
 | Precision     | `fp16`      |
-
----
-
-## 📊 Baseline vs. SOTA Summary
-
-| Model           | Pros                                 | Cons                                     |
-|-----------------|---------------------------------------|------------------------------------------|
-| Random Forest   | Fast, easy to interpret              | No explanation, relies on fixed features |
-| LLaMA 2 + LoRA  | Explanations, adaptable, generalizes | Slower, needs GPU                        |
 
 ---
 
