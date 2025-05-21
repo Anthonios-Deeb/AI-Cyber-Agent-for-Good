@@ -1,3 +1,11 @@
+"""
+CyberFlow AI Agent - predict.py
+
+This script allows real-time interaction with a fine-tuned LLaMA 2 model for detecting and reasoning about botnet activity in network flows.
+Users can either input flow data manually or analyze a random flow sampled from the CTU-13 dataset.
+The model returns both a classification and a human-readable explanation.
+
+"""
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import pandas as pd
@@ -18,6 +26,8 @@ REQUIRED_FIELDS = [
 EXAMPLE_FLOW = "StartTime: 1678886400, Duration: 10 seconds, Proto: TCP, SrcAddr: 192.168.1.10, Sport: 54321, Dir: ->, DstAddr: 10.0.0.5, Dport: 80, State: EST, TotPkts: 20, TotBytes: 2000, SrcBytes: 1000"
 
 # --- Model Loading ---
+# Loads the fine-tuned LLaMA 2 model and tokenizer for causal language modeling.
+# Returns the tokenizer, model, and the selected device (CPU or GPU).
 def load_model():
     """Loads the fine-tuned LLaMA 2 model and tokenizer."""
     print("\n🚀 Initializing CyberFlow AI Agent...")
@@ -39,6 +49,8 @@ def load_model():
 tokenizer, model, device = load_model()
 
 # --- Prediction Function ---
+# Constructs a structured prompt including the flow details and queries the model.
+# Returns the response from the LLaMA model, trimmed to the relevant output.
 def predict_flow(flow_info):
     """
     Constructs the prompt and queries the LLaMA 2 model for prediction.
@@ -68,8 +80,8 @@ Flow Details:
     answer_start = response.find("### Response:") + len("### Response:")
     return response[answer_start:].strip()
 
-# --- Flow Extraction and Validation ---
 
+# --- Flow Extraction and Validation ---
 # Dynamically create a regex pattern based on REQUIRED_FIELDS
 # This pattern looks for "Field1: <anything>, Field2: <anything>, ..."
 # It's flexible with commas and whitespace between fields.
@@ -115,7 +127,9 @@ def is_valid_flow_format(flow_str_to_validate):
     return all(field in flow_str_to_validate for field in REQUIRED_FIELDS)
 
 
-# --- Main Interaction Loop ---
+# --- Main Terminal Interface ---
+# Provides a CLI interface for users to interact with the CyberFlow AI Agent.
+# Offers two modes: manual entry or random selection from the dataset.
 if __name__ == "__main__":
     print("\n--- CyberFlow AI Agent (Terminal Mode) ---")
     print("Type '1' to enter flow details manually.")
